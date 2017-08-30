@@ -1,0 +1,16 @@
+#OSX
+*.DS_Store
+
+#IDE
+*.iml
+.idea
+
+#Build
+target
+out
+classes
+
+#Log files
+*.log
+
+
