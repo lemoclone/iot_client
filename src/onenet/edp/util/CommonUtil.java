@@ -1,11 +1,26 @@
-public class Util {
+package onenet.edp.util;
+
+import java.nio.charset.StandardCharsets;
+
+public class CommonUtil {
+
+    /**
+     * 字符串转换byte数组
+     *
+     * @param string
+     * @return
+     */
+    public static byte[] stringToByteArray(String string) {
+       return string.getBytes(StandardCharsets.UTF_8);
+    }
+
     /**
      * byte数组转换转16进制字符串
      *
      * @param array
      * @return hex string. if array is null, return null.
      */
-    public static String byteArrayToString(byte[] array) {
+    public static String byteArrayToHexString(byte[] array) {
         if (array == null) {
             return null;
         }
@@ -28,4 +43,6 @@ public class Util {
     public static void log(Object info) {
         System.out.println(info);
     }
+
+
 }

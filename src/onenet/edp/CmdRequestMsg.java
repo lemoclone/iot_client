@@ -1,6 +1,7 @@
 package onenet.edp;
 
 import onenet.edp.Common.MsgType;
+import onenet.edp.util.CommonUtil;
 
 import java.io.IOException;
 
@@ -49,5 +50,13 @@ public class CmdRequestMsg extends EdpMsg {
 
     public byte[] getCmdBody() {
         return this.cmdBody;
+    }
+
+    @Override
+    public String toString() {
+        return "CmdRequestMsg{" +
+                "cmdid=" + CommonUtil.byteArrayToHexString(cmdid) +
+                ", cmdBody=" + CommonUtil.byteArrayToHexString(cmdBody) +
+                '}';
     }
 }

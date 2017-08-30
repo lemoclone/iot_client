@@ -1,6 +1,8 @@
-import onenet.edp.*;
+package onenet.edp.test;
 
-import java.awt.*;
+import onenet.edp.*;
+import onenet.edp.util.CommonUtil;
+
 import java.util.List;
 
 public class Main {
@@ -13,7 +15,6 @@ public class Main {
 
     public static void main(String[] args) {
         client = new IotSocketClient();
-
         run();
     }
 
@@ -34,18 +35,25 @@ public class Main {
                             status = STATUS.UNCONNECTED;
                             break;
                         } else {
-                            Util.log("[ping response] packet: " + Util.byteArrayToString(packet));
+                            CommonUtil.log("[ping response] packet: " + CommonUtil.byteArrayToHexString(packet));
                             EdpKit kit = new EdpKit();
                             List<EdpMsg> msgs = kit.unpack(packet);
                             for (EdpMsg msg : msgs) {
-                                if (msg.getMsgType() == Common.MsgType.TUNNEL) {
-                                    TunnelMsg tunnel = (TunnelMsg) msg;
-                                    Util.log("server:" + tunnel.getServer() + " data:" + new String(tunnel.getData()));
+                                if (msg.getMsgType() == Common.MsgType.PINGRESP) {
+                                    PingRespMsg pingRespMsg = (PingRespMsg) msg;
+                                    CommonUtil.log("PingRespMsg: " + pingRespMsg.getMsgType());
+                                }
+                                if(msg.getMsgType() == Common.MsgType.CMDREQ) {
+                                    CmdRequestMsg cmdRequestMsg = (CmdRequestMsg)  msg;
+                                    CommonUtil.log("CmdRequestMsg: " + cmdRequestMsg);
+                                    CmdRespMsg cmdRespMsg = new CmdRespMsg();
+                                    byte[] cmdRespMsgBytes = cmdRespMsg.packMsg(cmdRequestMsg.getCmdid(),CommonUtil.stringToByteArray("good"));
+                                    client.write(cmdRespMsgBytes);
                                 }
                             }
                         }
                         try {
-                            Thread.sleep(20 * 1000);
+                            Thread.sleep(10 * 1000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -62,15 +70,15 @@ public class Main {
                         EdpKit kit = new EdpKit();
                         List<EdpMsg> msgs = kit.unpack(res);
                         if (msgs == null) {
-                            Util.log("[connect response] receive packet exception.");
+                            CommonUtil.log("[connect response] receive packet exception.");
                         } else {
                             EdpMsg msg = msgs.get(0);
                             if (msg.getMsgType() == Common.MsgType.CONNRESP) {
                                 ConnectRespMsg connectRespMsg = (ConnectRespMsg) msg;
-                                Util.log("[connect response] res_code:" + connectRespMsg.getResCode());
-                                Util.log("[connect response] res_msg:" + connectRespMsg);
+                                CommonUtil.log("[connect response] res_code:" + connectRespMsg.getResCode());
+                                CommonUtil.log("[connect response] res_msg:" + connectRespMsg);
                             } else {
-                                Util.log("[connect response] response packet is not connect response.type:" + msg.getMsgType());
+                                CommonUtil.log("[connect response] response packet is not connect response.type:" + msg.getMsgType());
                             }
                         }
                     }
