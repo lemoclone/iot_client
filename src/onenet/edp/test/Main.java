@@ -5,6 +5,10 @@ import onenet.edp.util.CommonUtil;
 
 import java.util.List;
 
+
+/**
+ * 测试代码在这里
+ */
 public class Main {
     enum STATUS {
         UNCONNECTED, CONNECTED
