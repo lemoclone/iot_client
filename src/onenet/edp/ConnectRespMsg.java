@@ -67,4 +67,14 @@ public class ConnectRespMsg extends EdpMsg
 	{
 		return this.licenseCode;
 	}
+
+    @Override
+    public String toString() {
+        return "ConnectRespMsg{" +
+                "hasLicenseCode=" + hasLicenseCode +
+                ", resCode=" + resCode +
+                ", licenseCodeLen=" + licenseCodeLen +
+                ", licenseCode='" + licenseCode + '\'' +
+                '}';
+    }
 }

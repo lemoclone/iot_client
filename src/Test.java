@@ -67,8 +67,8 @@ public class Test {
         OutputStream outStream = socket.getOutputStream();
 
         //向服务器发送连接请求
-        int devId = 24305;                                //***用户请使用自己的设备ID***
-        String devKey = "uKZdh8YaynK4BKRZ3rD8VCIYyXU";    //***用户请使用自己的设备的鉴权key***
+        int devId = 12067945;                                //***用户请使用自己的设备ID***
+        String devKey = "XM1xAFfU=O9S4hHOaRjg6K5=zU4=";    //***用户请使用自己的设备的鉴权key***
         ConnectMsg connectMsg = new ConnectMsg();
         byte[] packet = connectMsg.packMsg(devId, devKey);
         //若需要提供userId或edp超时时长，可参考一下方法
@@ -90,15 +90,16 @@ public class Test {
             byte[] recvPacket = new byte[readSize];
             System.arraycopy(readBuffer, 0, recvPacket, 0, readSize);
             List<EdpMsg> msgs = kit.unpack(recvPacket);
-            if (msgs == null || msgs.size() > 1) {
-                log("[connect responce]receive packet exception.");
+            if (msgs == null) {
+                log("[connect response] receive packet exception.");
             } else {
                 EdpMsg msg = msgs.get(0);
                 if (msg.getMsgType() == MsgType.CONNRESP) {
                     ConnectRespMsg connectRespMsg = (ConnectRespMsg) msg;
-                    log("[connect responce] res_code:" + connectRespMsg.getResCode());
+                    log("[connect response] res_code:" + connectRespMsg.getResCode());
+                    log("[connect response] res_msg:" + connectRespMsg);
                 } else {
-                    log("[connect responce]responce packet is not connect responce.type:" + msg.getMsgType());
+                    log("[connect response] response packet is not connect response.type:" + msg.getMsgType());
                 }
             }
         }
@@ -110,12 +111,12 @@ public class Test {
         if (readSize > 0) {
             byte[] recvPacket = new byte[readSize];
             System.arraycopy(readBuffer, 0, recvPacket, 0, readSize);
-            log("[ping responce]packet:" + byteArrayToString(recvPacket));
+            log("[ping response]packet:" + byteArrayToString(recvPacket));
         }
 
         //向服务器发送转发数据
         for (int i = 0; i < 5; i++) {
-            int desDevId = 23387;            //***用户请使用自己的目标设备ID***
+            int desDevId = 12067945;            //***用户请使用自己的目标设备ID***
             String pushData = "test sdk push data:" + i;
             PushDataMsg pushDataMsg = new PushDataMsg();
             packet = pushDataMsg.packMsg(desDevId, pushData);
