@@ -13,24 +13,58 @@ public class IotSocketClient {
     }
 
     public byte[] write(byte[] writeTo) {
+        InputStream inputStream = null;
         try {
             OutputStream outStream = socket.getOutputStream();
             outStream.write(writeTo);
             outStream.flush();
             byte[] readBuffer = new byte[1024];
-            int readSize = socket.getInputStream().read(readBuffer);
-            if(readSize > 0) {
-                byte[] rcvPacket = new byte[readSize];
-                System.arraycopy(readBuffer, 0, rcvPacket, 0, readSize);
-                return rcvPacket;
-            } else{
-                return null;
-            }
+            inputStream = socket.getInputStream();
+            int readSize = inputStream.read(readBuffer);
+            return readByte(readBuffer, readSize);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
         }
         return null;
     }
+
+    public void writeBack(byte[] writeTo) {
+        InputStream inputStream = null;
+        try {
+            OutputStream outStream = socket.getOutputStream();
+            outStream.write(writeTo);
+            outStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+        }
+    }
+
+
+    public byte[] read() {
+        InputStream inputStream = null;
+        try {
+            byte[] readBuffer = new byte[1024];
+            inputStream = socket.getInputStream();
+            int readSize = inputStream.read(readBuffer);
+            return readByte(readBuffer, readSize);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+        }
+        return null;
+    }
+
+    private byte[] readByte(byte[] readBuffer, int readSize) {
+        byte[] rcvPacket = null;
+        if (readSize > 0) {
+            rcvPacket = new byte[readSize];
+            System.arraycopy(readBuffer, 0, rcvPacket, 0, readSize);
+        }
+        return rcvPacket;
+    }
+
 
     private Socket openSocket(String server, int port) {
         Socket socket;

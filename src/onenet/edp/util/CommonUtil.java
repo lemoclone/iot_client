@@ -1,6 +1,8 @@
 package onenet.edp.util;
 
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.util.Date;
 
 public class CommonUtil {
 
@@ -41,6 +43,7 @@ public class CommonUtil {
      * @param info log information
      */
     public static void log(Object info) {
+        System.out.print(new Date() + " ");
         System.out.println(info);
     }
 

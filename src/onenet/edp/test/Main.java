@@ -4,6 +4,10 @@ import onenet.edp.*;
 import onenet.edp.util.CommonUtil;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+
+import static onenet.edp.test.Main.STATUS.UNCONNECTED;
 
 
 /**
@@ -11,59 +15,25 @@ import java.util.List;
  */
 public class Main {
     enum STATUS {
-        UNCONNECTED, CONNECTED
+        UNCONNECTED, IDLE, WORK
     }
 
-    private static STATUS status = STATUS.UNCONNECTED;
+    private static STATUS status = UNCONNECTED;
     private static IotSocketClient client;
+    private static SocketReadThread readThread;
+
+
+    private static Object notifyObject = new Object();
 
     public static void main(String[] args) {
         client = new IotSocketClient();
+        readThread = new SocketReadThread(client);
         run();
     }
 
     public static void run() {
         while (true) {
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
             switch (status) {
-                case CONNECTED: { //设备登录状态,循环发送心跳
-                    while (true) {
-                        PingMsg pingMsg = new PingMsg();
-                        byte[] packet = client.write(pingMsg.packMsg());
-                        if (packet == null) {
-                            status = STATUS.UNCONNECTED;
-                            break;
-                        } else {
-                            CommonUtil.log("[ping response] packet: " + CommonUtil.byteArrayToHexString(packet));
-                            EdpKit kit = new EdpKit();
-                            List<EdpMsg> msgs = kit.unpack(packet);
-                            for (EdpMsg msg : msgs) {
-                                if (msg.getMsgType() == Common.MsgType.PINGRESP) {
-                                    PingRespMsg pingRespMsg = (PingRespMsg) msg;
-                                    CommonUtil.log("PingRespMsg: " + pingRespMsg.getMsgType());
-                                }
-                                if(msg.getMsgType() == Common.MsgType.CMDREQ) {
-                                    CmdRequestMsg cmdRequestMsg = (CmdRequestMsg)  msg;
-                                    CommonUtil.log("CmdRequestMsg: " + cmdRequestMsg);
-                                    CmdRespMsg cmdRespMsg = new CmdRespMsg();
-                                    byte[] cmdRespMsgBytes = cmdRespMsg.packMsg(cmdRequestMsg.getCmdid(),CommonUtil.stringToByteArray("good"));
-                                    client.write(cmdRespMsgBytes);
-                                }
-                            }
-                        }
-                        try {
-                            Thread.sleep(10 * 1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    break;
-                }
                 case UNCONNECTED: { //设备未登录状态,先登录
                     int devId = 12067945;                              //设备ID
                     String devKey = "XM1xAFfU=O9S4hHOaRjg6K5=zU4=";    //设备的APIKey,不是鉴权key
@@ -87,8 +57,37 @@ public class Main {
                         }
                     }
                     System.out.println("connected res: " + res);
-                    status = STATUS.CONNECTED;
+                    status = STATUS.WORK;
                     break;
+                }
+
+                case WORK: { //设备工作状态
+                    CommonUtil.log("step in work thread");
+                    ExecutorService executor = new ScheduledThreadPoolExecutor(1);
+                    executor.execute(readThread);
+
+                    //进入循环,每隔30s读取SocketReadThread状态
+                    while (true) {
+                        try {
+                            Thread.sleep(30000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        //SocketReadThread空闲,则发心跳到服务器,激活读取线程
+                        if (readThread.isIdle()) {
+                            CommonUtil.log("step in ping");
+                            PingMsg pingMsg = new PingMsg();
+                            client.writeBack(pingMsg.packMsg());
+                        }
+
+                        //SocketReadThread发现socket连接关闭,则关闭读取线程,进入连接状态
+                        if (readThread.isUnConnected()) {
+                            executor.shutdown();
+                            status = STATUS.UNCONNECTED;
+                            break;
+                        }
+                    }
                 }
             }
         }
