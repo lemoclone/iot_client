@@ -12,7 +12,7 @@ public class SocketReadThread implements Runnable {
     //Socket客户端
     private IotSocketClient client;
     //Socket上次读取时间
-    private long lastReadTime;
+    private long lastReadTime = System.currentTimeMillis();
     //Socket连接状态
     private boolean unConnected;
 

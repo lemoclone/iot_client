@@ -15,15 +15,12 @@ import static onenet.edp.test.Main.STATUS.UNCONNECTED;
  */
 public class Main {
     enum STATUS {
-        UNCONNECTED, IDLE, WORK
+        UNCONNECTED, WORK
     }
 
     private static STATUS status = UNCONNECTED;
     private static IotSocketClient client;
     private static SocketReadThread readThread;
-
-
-    private static Object notifyObject = new Object();
 
     public static void main(String[] args) {
         client = new IotSocketClient();
